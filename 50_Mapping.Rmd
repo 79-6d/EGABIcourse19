@@ -154,7 +154,8 @@ Start by installing the `SOmap` package if you haven't done so already:
 
 ```{somap_install eval = FALSE}
 remotes::install_github("AustralianAntarcticDivision/SOmap")
-```
+
+```
 
 <div class="alert alert-info">
 **Temporary note:** the code here was written using the development version of `SOmap`. You may need to install the development version using `remotes::install_github("AustralianAntarcticDivision/SOmap", ref = "dev-0.5")`.
@@ -180,7 +181,7 @@ library(ggplot2)
 
 A basic circumpolar map in polar stereographic projection:
 
-```{r somap1}
+```{r somap1}
 SOmap()
 ```
 
@@ -450,7 +451,8 @@ my_ggplot + geom_point(data = as.data.frame(my_points), aes(lon, lat, colour = z
   scale_colour_distiller(palette = "Spectral")
 ```
 
-Multiple rasters or multiple sets of points gets tricky if they are on different scales, because `ggplot2` is only designed to work with a single colour scale per geometry type. You can try your luck with the `ggnewscale` or `relayer` packages, although both are in a fairly experimental stage of development.
+
+Multiple rasters or multiple sets of points gets tricky if they are on different scales, because `ggplot2` is only designed to work with a single colour scale per geometry type. You can try your luck with the `ggnewscale` or `relayer` packages, although both are in a fairly experimental stage of development.
 
 ```{r somap5f, warning = FALSE, message = FALSE}
 ## remotes::install_github("clauswilke/relayer")
@@ -515,7 +517,8 @@ names(ice_raster_as_df)[3] <- "ice"
 ## add this to our object in place of bathy
 temp$bathy <- SO_plotter(plotfun = "ggplot2::geom_raster",
                          plotargs = list(data = ice_raster_as_df,
-                                         mapping = aes_string(fill = "ice")))
+                                         mapping = aes_string(fill = "ice"))
+)
 ## change the colour scale
 temp$scale_fill[[1]]$plotargs <- list(colours = my_cmap, na.value = "#FFFFFF00", guide = FALSE)
 ## remove the bathy legend
