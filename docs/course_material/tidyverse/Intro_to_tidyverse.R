@@ -1,6 +1,7 @@
 ## We load Tidyverse here, which includes a suite of packages that can work together.
 ## When loading directly like below, you get a table which tells you what packages are attached
 library(tidyverse)
+library(broom)
 ## you will also see a list of conflicted functions - that is, function names that appear
 ## in multiple packages. For example, there is a "filter" function in both the stats package
 ## and in the dplyr package. See the course notes about namespace prefixes (and e.g.
@@ -14,6 +15,7 @@ data(starwars)
 #### Data importing ####
 ########################
 
+# if not able to change working directory, use GUI browse to "./docs/course_material/tidyverse", set as working directory
 setwd("c:/EGABIcourse19-master/docs/course_material/tidyverse")
 
 ### Using base R read.csv the column classes are imported poorly and we would have to convert them ourselves later!!
