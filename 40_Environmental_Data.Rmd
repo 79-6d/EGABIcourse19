@@ -43,28 +43,17 @@ srcs[1, ]
 
 Choose a directory into which to download the data. Usually this would be a persistent directory on your machine so that data sets downloaded in one session would remain available for use in later sessions, and not need re-downloading. A persistent directory could be something like `c:\data\` (on Windows), or you could use the `rappdirs` package (the `user_cache_dir` function) to suggest a suitable directory (cross-platform).
 
-```{r ed0hidden, echo = FALSE, results = "asis", cache = FALSE}
-if (grepl("ben_ray", tempdir())) {
-  cat("Here we'll use the `c:/data/cache` directory:\n")
-  my_data_dir <-  "/data/cache"
-} else {
-  cat("Here we'll use a temporary directory:\n")
-  my_data_dir <-  tempdir()
-}
-```
 
 ```{r ed0a, include = grepl("ben_ray", tempdir()), eval = FALSE, cache = FALSE}
-my_data_dir <-  "/data/cache"
-```
-```{r ed0b, include = !grepl("ben_ray", tempdir()), eval = FALSE, cache = FALSE}
-my_data_dir <-  tempdir()
+my_data_dir <-  "./data/cache"
 ```
 
 Select the data source that we want:
 
 ```{r ed4}
 data_source <- sources("Southern Ocean marine environmental data")
-```
+
+```
 
 Note that it's a good idea to check the dataset size before downloading it, as some are quite large! (Though if you are running the download interactively, it will ask you before downloading a large data set).
 
