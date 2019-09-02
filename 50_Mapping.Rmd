@@ -396,7 +396,7 @@ str(mymap$ice)
 We can modify the function and/or its arguments:
 
 ```{r somap2c}
-mymap$ice[[1]]$plotargs$col <- "green"
+mymap$ice$plotargs$col[[1]] <- "green"
 ```
 
 ```{r somap2d}
