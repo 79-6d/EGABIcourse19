@@ -218,7 +218,7 @@ y <- reclassify(y,cbind(FALSE,0)) # extrapolation area
 y <- reclassify(y,cbind(TRUE,1))  # non extrapolation, inside the boundaries of calibration
 
 plot(y)
-writeRaster(y, "results/MESS.asc")
+writeRaster(y, "results/MESS.asc", overwrite=TRUE)
 ####---------------------------------------------------------------------------
 ####---------------------------------------------------------------------------
 
