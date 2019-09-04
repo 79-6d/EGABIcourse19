@@ -2,6 +2,7 @@ library(ncdf4)
 library(raster)
 library(dismo)
 library(gbm)
+library(usdm)
 
 #### Open occurrence records ####
 #---------------------------------
@@ -11,17 +12,36 @@ occ.sterechinus <- read.csv("data/occurrences_sterechinus.csv", header=T, sep=";
 #### Open Environmental descriptors layers and stack them together ####
 #-----------------------------------------------------------------------
 depth <- raster("data/environmental_layers/depth.nc")
-sediments <- raster("data/environmental_layers/sediments.nc")
-seafloor_temp_2005_2012_max <- raster("data/environmental_layers/seafloor_temp_2005_2012_max.nc")
+geomorphology <- raster("data/environmental_layers/geomorphology.nc")
+ice_cover_min <- raster("data/environmental_layers/ice_cover_min.nc")
+ice_cover_max <- raster("data/environmental_layers/ice_cover_max.nc")
+ice_thickness_min <- raster("data/environmental_layers/ice_thickness_min.nc")
+ice_thickness_max <- raster("data/environmental_layers/ice_thickness_max.nc")
+mixed_layer_depth <- raster("data/environmental_layers/mixed_layer_depth.nc")
+POC_2005_2012_min <- raster("data/environmental_layers/POC_2005_2012_min.nc")
 POC_2005_2012_max <- raster("data/environmental_layers/POC_2005_2012_max.nc")
+roughness <- raster("data/environmental_layers/roughness.nc")
+sediments <- raster("data/environmental_layers/sediments.nc")
 seafloor_current_speed <- raster("data/environmental_layers/seafloor_current_speed.nc")
+seafloor_sali_2005_2012_min <- raster("data/environmental_layers/seafloor_sali_2005_2012_min.nc")
+seafloor_sali_2005_2012_max <- raster("data/environmental_layers/seafloor_sali_2005_2012_max.nc")
+seafloor_temp_2005_2012_min <- raster("data/environmental_layers/seafloor_temp_2005_2012_min.nc")
+seafloor_temp_2005_2012_max <- raster("data/environmental_layers/seafloor_temp_2005_2012_max.nc")
+slope <- raster("data/environmental_layers/slope.nc")
 
-predictors_stack <- stack(depth,sediments,seafloor_temp_2005_2012_max,POC_2005_2012_max,seafloor_current_speed)
+# collinearity of environmental descriptors
+predictors_stack <- stack(depth, geomorphology,ice_cover_min, ice_cover_max, ice_thickness_min, ice_thickness_max, mixed_layer_depth, POC_2005_2012_min, POC_2005_2012_max, roughness, sediments, seafloor_current_speed, seafloor_sali_2005_2012_min, seafloor_sali_2005_2012_max, seafloor_temp_2005_2012_min, seafloor_temp_2005_2012_max, slope)
+vif(predictors_stack)
+vifstep(predictors_stack, th=10)
+# 2 variables from the 17 input variables have collinearity problem: 
+# seafloor_temp_2005_2012_min seafloor_sali_2005_2012_min 
+
 
 ## have a look at your descriptors properties 
 #..............................................
-#predictors_stack
-#plot(predictors_stack)
+predictors_stack
+plot(predictors_stack)
+
 
 # have a look at the distribution of occurrences 
 #.................................................
@@ -65,23 +85,24 @@ for (j in 1:cv.boot){
   envi.presences <- unique(extract (predictors_stack,occ.sterechinus[,c(2,1)]))
   presence.data <- occ.sterechinus[-which(duplicated(extract(predictors_stack,occ.sterechinus[,c(2,1)]))),c(2,1)]; colnames(presence.data)<- c("longitude","latitude")
   # the function 'unique' enables to remove the duplicates that may be contained in the dataset (occurrences found in a same pixel); 'duplicated' aims at spotting which of these rows are similar 
-  #head(envi.presences)
+  head(envi.presences)
+  head(presence.data)
   # the presence data will be associated to ID=1
   
   set.seed(n.seed[j])
   # sampling of background data : in the loop, changes at each replicate 
   # 1000 background data are randomly sampled in the environment, according to the weighting scheme of the KDE layer 
   background_data <- xyFromCell(KDE, sample(which(!is.na(values(KDE))), 200, prob=values(KDE)[!is.na(values(KDE))]))
-
   colnames(background_data) <- colnames(presence.data)
   # extract environmental conditions where the background data are sampled 
   envi.background <- extract(predictors_stack,background_data)
+  head(envi.background)
   # the background data will be associated to ID=0
 
   # Initialise the matrix containing presence, background data and the environmental values associated 
   id<-0;sdmdata.unique<-0;  id<-c(rep(1,nrow(envi.presences)),rep(0,nrow(envi.background))) 
   MATRIX_OCC_ENVI<-data.frame(cbind(id,rbind(envi.presences,envi.background)))
-  #head(MATRIX_OCC_ENVI)
+  head(MATRIX_OCC_ENVI)
 
   # Split of the occurrence-background dataset into folds of test/training data (spatially segregated)
   dat1 <- rbind(cbind(background_data, Isp=rep(0,nrow(background_data))), cbind(presence.data,Isp=rep(1,nrow(presence.data)))); colnames(dat1)<- c("longitude","latitude","Isp")
@@ -144,8 +165,8 @@ mean_stack <- raster::calc(stack.pred, mean, na.rm=T); mean_stack <- mask(mean_s
 #sd_stack <- raster::calc(stack.pred,sd, na.rm=T); sd_stack <- mask(sd_stack, depth)
 
 # you can plot the results 
-#continent <- read.csv("data/worldmap.csv") # add continents lines 
-#plot(mean_stack) ; points(continent, type="l")
+continent <- read.csv("data/worldmap.csv") # add continents lines
+plot(mean_stack) ; points(continent, type="l")
 
 # this is an approximate map, if you want to have a nicer representation, you can 
 # export the ascii document and open it on another software such as Qgis or other
@@ -189,15 +210,15 @@ CtTot <- data.frame(CtTot) ; colnames(CtTot) <- "Contribution (%) of environment
 ####---------------------------------------------------------------------------
 ### CALCULATE EXTRAPOLATION 
 # Multivariate Environmental Similarity Surface (Elith et al. 2010) 
-# envi.presences <- unique(extract (predictors_stack,occ.sterechinus[,c(2,1)]))
-# x <- dismo::mess(predictors_stack, na.omit(envi.presences))
-# 
-# y <- x; values(y)<- values(x)>0  # refers to Elith et al. (2010): when the calculated MESS values are negative, it means that it is extrapolating (outside of boundaries)
-# y <- reclassify(y,cbind(FALSE,0)) # extrapolation area 
-# y <- reclassify(y,cbind(TRUE,1))  # non extrapolation, inside the boundaries of calibration
-# 
-# plot(y)
+envi.presences <- unique(extract (predictors_stack,occ.sterechinus[,c(2,1)]))
+x <- dismo::mess(predictors_stack, na.omit(envi.presences))
 
+y <- x; values(y)<- values(x)>0  # refers to Elith et al. (2010): when the calculated MESS values are negative, it means that it is extrapolating (outside of boundaries)
+y <- reclassify(y,cbind(FALSE,0)) # extrapolation area
+y <- reclassify(y,cbind(TRUE,1))  # non extrapolation, inside the boundaries of calibration
+
+plot(y)
+writeRaster(y, "results/MESS.asc")
 ####---------------------------------------------------------------------------
 ####---------------------------------------------------------------------------
 
