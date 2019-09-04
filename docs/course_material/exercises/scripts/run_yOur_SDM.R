@@ -35,7 +35,7 @@ vif(predictors_stack)
 vifstep(predictors_stack, th=10)
 # 2 variables from the 17 input variables have collinearity problem: 
 # seafloor_temp_2005_2012_min seafloor_sali_2005_2012_min 
-
+predictors_stack <- stack(depth, geomorphology,ice_cover_min, ice_cover_max, ice_thickness_min, ice_thickness_max, mixed_layer_depth, POC_2005_2012_min, POC_2005_2012_max, roughness, sediments, seafloor_current_speed, seafloor_sali_2005_2012_max, seafloor_temp_2005_2012_max, slope)
 
 ## have a look at your descriptors properties 
 #..............................................
@@ -62,7 +62,7 @@ KDE <- raster("data/KDE.asc")
 
 #### Set up 
 #-------------
-cv.boot <- 2 # number of replicates (# of times models are launched/replicated)
+cv.boot <- 15 # number of replicates (# of times models are launched/replicated)
 source("scripts/Function_gbm.R")
 
 #### Stack of empty data and matrices to fill
@@ -92,7 +92,7 @@ for (j in 1:cv.boot){
   set.seed(n.seed[j])
   # sampling of background data : in the loop, changes at each replicate 
   # 1000 background data are randomly sampled in the environment, according to the weighting scheme of the KDE layer 
-  background_data <- xyFromCell(KDE, sample(which(!is.na(values(KDE))), 200, prob=values(KDE)[!is.na(values(KDE))]))
+  background_data <- xyFromCell(KDE, sample(which(!is.na(values(KDE))), 1000, prob=values(KDE)[!is.na(values(KDE))]))
   colnames(background_data) <- colnames(presence.data)
   # extract environmental conditions where the background data are sampled 
   envi.background <- extract(predictors_stack,background_data)
@@ -127,9 +127,9 @@ for (j in 1:cv.boot){
                          family = "bernoulli",
                          n.folds=4,
                          fold.vector = MyFold, 
-                         tree.complexity = 3,
-                         learning.rate = 0.015,
-                         bag.fraction =0.5)
+                         tree.complexity = 4,
+                         learning.rate = 0.01,
+                         bag.fraction = 0.8)
 
   #------------------------------------------------------------
   #### Extract data and model outputs 
