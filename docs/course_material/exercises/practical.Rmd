@@ -1,0 +1,73 @@
+---
+title: "practical"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, root.dir = "/Users/biodiversityaq/Desktop/EGABIcourse19/docs/course_material/exercises/")
+# load libraries
+library(ncdf4)
+library(raster)
+library(dismo)
+library(gbm)
+library(usdm)
+library(tidyverse)
+```
+
+## Occurrence data
+Explore occurrence records
+```{r occ}
+occ.sterechinus <- read.csv("data/occurrences_sterechinus.csv", header=T, sep=";")
+head(occ.sterechinus)
+ggplot(occ.sterechinus, aes(x=decimalLongitude, y=decimalLatitude)) +
+  geom_point(stat="identity", colour="blue", alpha=0.5)
+```
+
+## Environmental layers
+```{r env}
+depth <- raster("data/environmental_layers/depth.nc")
+geomorphology <- raster("data/environmental_layers/geomorphology.nc")
+ice_cover_min <- raster("data/environmental_layers/ice_cover_min.nc")
+ice_cover_max <- raster("data/environmental_layers/ice_cover_max.nc")
+ice_thickness_min <- raster("data/environmental_layers/ice_thickness_min.nc")
+ice_thickness_max <- raster("data/environmental_layers/ice_thickness_max.nc")
+mixed_layer_depth <- raster("data/environmental_layers/mixed_layer_depth.nc")
+POC_2005_2012_min <- raster("data/environmental_layers/POC_2005_2012_min.nc")
+POC_2005_2012_max <- raster("data/environmental_layers/POC_2005_2012_max.nc")
+roughness <- raster("data/environmental_layers/roughness.nc")
+sediments <- raster("data/environmental_layers/sediments.nc")
+seafloor_current_speed <- raster("data/environmental_layers/seafloor_current_speed.nc")
+seafloor_sali_2005_2012_min <- raster("data/environmental_layers/seafloor_sali_2005_2012_min.nc")
+seafloor_sali_2005_2012_max <- raster("data/environmental_layers/seafloor_sali_2005_2012_max.nc")
+seafloor_temp_2005_2012_min <- raster("data/environmental_layers/seafloor_temp_2005_2012_min.nc")
+seafloor_temp_2005_2012_max <- raster("data/environmental_layers/seafloor_temp_2005_2012_max.nc")
+slope <- raster("data/environmental_layers/slope.nc")
+
+predictors_stack <- stack(depth, geomorphology,ice_cover_min, ice_cover_max, ice_thickness_min, ice_thickness_max, mixed_layer_depth, POC_2005_2012_min, POC_2005_2012_max, roughness, sediments, seafloor_current_speed, seafloor_sali_2005_2012_max, seafloor_temp_2005_2012_max, slope)
+```
+
+
+## Pixel resolution of environmental layers
+
+Convert  pixel resolution of `predictors_stack` with `raster::aggregate`. 
+Choices: 0.1, 1, 10?
+```{r pixel, warning=FALSE}
+# check current pixel resolution of predictors_stack
+predictors_stack_5 <- aggregate(predictors_stack, fact=5)
+predictors_stack_10 <- aggregate(predictors_stack, fact=10)
+plot(predictors_stack)
+plot(predictors_stack_5)
+plot(predictors_stack_10)
+
+# pass predictors_stack to run() function
+source("scripts/run_yOur_SDM.R")
+res_1 <- run(predictors_stack, "res_0.1")
+res_5 <- run(predictors_stack_5, "res_0.5")
+res_10 <- run(predictors_stack_10, "res_1")
+
+res_1
+res_5
+res_10
+```
+
+

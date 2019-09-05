@@ -62,7 +62,7 @@ run <- function(predictors_stack, mess.file.name){
   
   #### Set up 
   #-------------
-  cv.boot <- 15 # number of replicates (# of times models are launched/replicated)
+  cv.boot <- 5 # number of replicates (# of times models are launched/replicated)
   source("scripts/Function_gbm.R")
   
   #### Stack of empty data and matrices to fill
@@ -219,7 +219,7 @@ run <- function(predictors_stack, mess.file.name){
   y <- reclassify(y,cbind(FALSE,0)) # extrapolation area
   y <- reclassify(y,cbind(TRUE,1))  # non extrapolation, inside the boundaries of calibration
   
-  # plot(y)
+  plot(y)
   file.name <- paste("results/mess_", mess.file.name, ".asc")
   writeRaster(y, "results/MESS.asc", overwrite=TRUE)
   ####---------------------------------------------------------------------------
