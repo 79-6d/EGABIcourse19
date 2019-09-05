@@ -62,7 +62,7 @@ KDE <- raster("data/KDE.asc")
 
 #### Set up 
 #-------------
-cv.boot <- 15 # number of replicates (# of times models are launched/replicated)
+cv.boot <- 2 # number of replicates (# of times models are launched/replicated)
 source("scripts/Function_gbm.R")
 
 #### Stack of empty data and matrices to fill
@@ -82,8 +82,8 @@ for (j in 1:cv.boot){
   #------------------------------------------------------------
   #### create the matrix of occurrence-environment 
   #------------------------------------------------
-  envi.presences <- unique(extract (predictors_stack,occ.sterechinus[,c(2,1)]))
-  presence.data <- occ.sterechinus[-which(duplicated(extract(predictors_stack,occ.sterechinus[,c(2,1)]))),c(2,1)]; colnames(presence.data)<- c("longitude","latitude")
+  envi.presences <- unique(raster::extract (predictors_stack,occ.sterechinus[,c(2,1)]))
+  presence.data <- occ.sterechinus[-which(duplicated(raster::extract(predictors_stack,occ.sterechinus[,c(2,1)]))),c(2,1)]; colnames(presence.data)<- c("longitude","latitude")
   # the function 'unique' enables to remove the duplicates that may be contained in the dataset (occurrences found in a same pixel); 'duplicated' aims at spotting which of these rows are similar 
   head(envi.presences)
   head(presence.data)
@@ -95,7 +95,7 @@ for (j in 1:cv.boot){
   background_data <- xyFromCell(KDE, sample(which(!is.na(values(KDE))), 1000, prob=values(KDE)[!is.na(values(KDE))]))
   colnames(background_data) <- colnames(presence.data)
   # extract environmental conditions where the background data are sampled 
-  envi.background <- extract(predictors_stack,background_data)
+  envi.background <- raster::extract(predictors_stack,background_data)
   head(envi.background)
   # the background data will be associated to ID=0
 
@@ -210,7 +210,7 @@ CtTot <- data.frame(CtTot) ; colnames(CtTot) <- "Contribution (%) of environment
 ####---------------------------------------------------------------------------
 ### CALCULATE EXTRAPOLATION 
 # Multivariate Environmental Similarity Surface (Elith et al. 2010) 
-envi.presences <- unique(extract (predictors_stack,occ.sterechinus[,c(2,1)]))
+envi.presences <- unique(raster::extract (predictors_stack,occ.sterechinus[,c(2,1)]))
 x <- dismo::mess(predictors_stack, na.omit(envi.presences))
 
 y <- x; values(y)<- values(x)>0  # refers to Elith et al. (2010): when the calculated MESS values are negative, it means that it is extrapolating (outside of boundaries)
