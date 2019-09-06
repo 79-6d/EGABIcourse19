@@ -376,87 +376,6 @@ The goal of `SOmap` is to make it fairly easy to produce a fairly-good-looking m
 
 This section describes some approaches to modifying a map to get it closer to your particular needs. Be warned: depending on the exact modifications needed, this might get you pretty close to the crumbling edge of `SOmap` development. In particular, anything that requires modifying the internal structure of an `SOmap` object may change in the future (with luck, we'll make this sort of thing easier - but we're not there yet.)
 
-<<<<<<< HEAD
-#### Modifying base graphics maps
-
-Calls to `SOmap()`, `SOmanagement()`, `SOmap_auto()` return an object of class `SOmap`, `SOmap_management`, or `SOmap_auto`. These objects contain all of the data and plotting instructions required to draw the map. Calling `print()` or `plot()` on one of these objects will cause that code to be executed, and the object to be drawn in the current graphics device. Hence, calling `SOmap()` directly *without* assigning the result to a variable will make it appear in the graphics device, because the returned object is being printed to the console (and thus triggering the `print` method). But you can also assign the result to a variable, e.g. `myplot <- SOmap()` and then explicitly plot the object with `plot(myplot)`. The advantage of this is that you can potentially manipulate the `myplot` object to make changes to the map before plotting it.
-
-Note, this is likely to be fragile. Proceed at your own risk!
-
-```{r somap2a}
-mymap <- SOmap()
-names(mymap)
-```
-
-The object contains a `plot_sequence` component, which defines the order in which each part of the plot is drawn. The other components of the object contain the code required to draw each part. Take e.g. the ice component (this is the ice shelves, glacier tongues, etc). This is a list (in this case with only one element). Each element of the list specifies a function to run along with arguments to pass to it:
-
-```{r somap2b}
-str(mymap$ice)
-```
-
-We can modify the function and/or its arguments:
-
-```{r somap2c}
-mymap$ice$plotargs$col[[1]] <- "green"
-```
-
-```{r somap2d}
-plot(mymap)
-```
-
-We can remove entire components:
-```{r somap2e}
-temp <- mymap
-temp$coastline <- NULL
-temp$ice <- NULL
-plot(temp)
-```
-
-But note that some elements are required (in particular, the bathymetry layer can't currently be removed because the code that draws this is also the code that creates the plot). This code would fail (not run here):
-
-```{r somap2f, eval = FALSE}
-temp <- mymap
-temp$bathy <- NULL
-plot(temp)
-```
-
-However, we could replace the bathymetry data with another raster object. We need to be careful about the extent and projection of this raster. For example, simply replacing the bathymetry raster with the ice raster (which has the same polar stereographic projection but smaller extent) gives:
-
-```{r somap2g}
-temp <- mymap
-temp$bathy[[1]]$plotargs$x <- ice
-temp$bathy_legend <- NULL
-plot(temp)
-```
-
-But if we extend the ice raster to match the map extent:
-
-```{r somap2h}
-temp <- mymap
-temp$bathy[[1]]$plotargs$x <- raster::extend(ice, mymap$target)
-temp$bathy_legend <- NULL
-plot(temp)
-```
-
-#### Modifying ggplot maps
-
-We can modify `ggplot2`-based maps at two levels.
-
-##### Modifying the `ggplot` object.
-
-Remember that printing or plotting a `SOmap_gg` object produces a `ggplot` object. This can be modified by adding e.g. layers or themes just like a normal `ggplot`. Remember to load the `ggplot2` library now that we are using `ggplot2` functions directly.
-
-```{r somap6, message = FALSE, warning = FALSE}
-library(ggplot2)
-my_ggplot + geom_point(data = as.data.frame(my_points), aes(lon, lat, colour = z), size = 3) +
-  scale_colour_distiller(palette = "Spectral")
-```
-
-
-Multiple rasters or multiple sets of points gets tricky if they are on different scales, because `ggplot2` is only designed to work with a single colour scale per geometry type. You can try your luck with the `ggnewscale` or `relayer` packages, although both are in a fairly experimental stage of development.
-
-```{r somap5f, warning = FALSE, message = FALSE}
-=======
 #### Modifying base graphics maps
 
 Calls to `SOmap()`, `SOmanagement()`, `SOmap_auto()` return an object of class `SOmap`, `SOmap_management`, or `SOmap_auto`. These objects contain all of the data and plotting instructions required to draw the map. Calling `print()` or `plot()` on one of these objects will cause that code to be executed, and the object to be drawn in the current graphics device. Hence, calling `SOmap()` directly *without* assigning the result to a variable will make it appear in the graphics device, because the returned object is being printed to the console (and thus triggering the `print` method). But you can also assign the result to a variable, e.g. `myplot <- SOmap()` and then explicitly plot the object with `plot(myplot)`. The advantage of this is that you can potentially manipulate the `myplot` object to make changes to the map before plotting it.
@@ -545,10 +464,10 @@ my_ggplot + geom_point(data = as.data.frame(my_points), aes(lon, lat, colour = z
   scale_colour_distiller(palette = "Spectral")
 ```
 
-Multiple rasters or multiple sets of points gets tricky if they are on different scales, because `ggplot2` is only designed to work with a single colour scale per geometry type. You can try your luck with the `ggnewscale` or `relayer` packages, although both are in a fairly experimental stage of development.
+
+Multiple rasters or multiple sets of points gets tricky if they are on different scales, because `ggplot2` is only designed to work with a single colour scale per geometry type. You can try your luck with the `ggnewscale` or `relayer` packages, although both are in a fairly experimental stage of development.
 
 ```{r somap5f, warning = FALSE, message = FALSE}
->>>>>>> 74b4e58ef7d0f355a3ffc1b563537f25e316f5e6
 ## remotes::install_github("clauswilke/relayer")
 library(relayer)
 plot(SOgg(SOmap(straight = TRUE))) +
