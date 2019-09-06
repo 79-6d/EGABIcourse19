@@ -19,8 +19,10 @@ Explore occurrence records
 ```{r occ}
 occ.sterechinus <- read.csv("data/occurrences_sterechinus.csv", header=T, sep=";")
 head(occ.sterechinus)
+continent <- read.csv("data/worldmap.csv") # add continents lines
 ggplot(occ.sterechinus, aes(x=decimalLongitude, y=decimalLatitude)) +
-  geom_point(stat="identity", colour="blue", alpha=0.5)
+  geom_point(stat="identity", colour="blue", alpha=0.5) 
+  # geom_polygon(continent, aes(x=lon, y=lat), fill=NA) 
 ```
 
 ## Environmental layers
@@ -43,7 +45,7 @@ seafloor_temp_2005_2012_min <- raster("data/environmental_layers/seafloor_temp_2
 seafloor_temp_2005_2012_max <- raster("data/environmental_layers/seafloor_temp_2005_2012_max.nc")
 slope <- raster("data/environmental_layers/slope.nc")
 
-predictors_stack <- stack(depth, geomorphology,ice_cover_min, ice_cover_max, ice_thickness_min, ice_thickness_max, mixed_layer_depth, POC_2005_2012_min, POC_2005_2012_max, roughness, sediments, seafloor_current_speed, seafloor_sali_2005_2012_max, seafloor_temp_2005_2012_max, slope)
+predictors_stack <- stack(depth, geomorphology,ice_cover_min, ice_cover_max, ice_thickness_min, ice_thickness_max, mixed_layer_depth, POC_2005_2012_min, POC_2005_2012_max, roughness, sediments, seafloor_current_speed, seafloor_sali_2005_2012_min, seafloor_sali_2005_2012_max, seafloor_temp_2005_2012_min, seafloor_temp_2005_2012_max, slope)
 ```
 
 
@@ -55,19 +57,36 @@ Choices: 0.1, 1, 10?
 # check current pixel resolution of predictors_stack
 predictors_stack_5 <- aggregate(predictors_stack, fact=5)
 predictors_stack_10 <- aggregate(predictors_stack, fact=10)
-plot(predictors_stack)
-plot(predictors_stack_5)
-plot(predictors_stack_10)
+plot(predictors_stack$depth)
+plot(predictors_stack_5$depth)
+plot(predictors_stack_10$depth)
+```
 
+```{r sdm, warning=FALSE}
 # pass predictors_stack to run() function
 source("scripts/run_yOur_SDM.R")
-res_1 <- run(predictors_stack, "res_0.1")
-res_5 <- run(predictors_stack_5, "res_0.5")
-res_10 <- run(predictors_stack_10, "res_1")
-
-res_1
-res_5
-res_10
+res_1 <- run(predictors_stack, 0.1)
+res_5 <- run(predictors_stack_5, 0.5)
+res_10 <- run(predictors_stack_10, 1)
 ```
 
 
+
+## Contribution of environmental descriptors and model evaluation matrix
+
+###  Resolution of environmental layers = 0.1 degree
+
+```{r}
+res_1
+```
+###  Resolution of environmental layers = 0.5 degree
+
+```{r}
+res_5
+```
+
+###  Resolution of environmental layers = 1 degree
+
+```{r}
+res_10
+```

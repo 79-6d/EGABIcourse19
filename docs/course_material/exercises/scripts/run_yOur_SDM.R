@@ -47,7 +47,7 @@ predictors_stack
 #.................................................
 #plot(depth)
 #points(occ.sterechinus[,c(2,1)], pch=20) # longitude first, latitude second
-run <- function(predictors_stack, mess.file.name){
+run <- function(predictors_stack, resolution){
   #--------------------------------------------------------------------------------------------------------------
   # Open the KDE layer of sampling effort, on which the background data will be sampled (by weighting) 
   # The KDE (Kernel Density Estimation) is a statistical tool that helps to measure the probability of finding
@@ -162,7 +162,7 @@ run <- function(predictors_stack, mess.file.name){
   #### Maps of predictions 
   #------------------------
   mean_stack <- raster::calc(stack.pred, mean, na.rm=T); mean_stack <- mask(mean_stack, predictors_stack$depth)
-  #sd_stack <- raster::calc(stack.pred,sd, na.rm=T); sd_stack <- mask(sd_stack, depth)
+  sd_stack <- raster::calc(stack.pred,sd, na.rm=T); sd_stack <- mask(sd_stack, predictors_stack$depth)
   
   # you can plot the results 
   continent <- read.csv("data/worldmap.csv") # add continents lines
@@ -199,7 +199,9 @@ run <- function(predictors_stack, mess.file.name){
   # calculate the average 
   CtM <- apply(contTr, 1, mean)
   CtSD <- apply(contTr, 1, sd)
-  CtTot_df <- rbind(CtM, CtSD)
+  resol <- rep(resolution, length(CtM))
+  CtTot_df <- cbind(CtM, CtSD, resolution)
+  colnames(CtTot_df) <- c("mean", "sd", "resolution")
   
   CtTot <- paste(round(CtM, 3), round(CtSD, 3), sep = " ± ")
   names(CtTot) <- names(CtM)
@@ -220,7 +222,7 @@ run <- function(predictors_stack, mess.file.name){
   y <- reclassify(y,cbind(TRUE,1))  # non extrapolation, inside the boundaries of calibration
   
   plot(y)
-  file.name <- paste("results/mess_", mess.file.name, ".asc")
+  file.name <- paste("results/mess_", resolution, ".asc")
   writeRaster(y, "results/MESS.asc", overwrite=TRUE)
   ####---------------------------------------------------------------------------
   ####---------------------------------------------------------------------------
